@@ -49,7 +49,7 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-    author = models.ForeignKey( # ЗДЕСЬ ПОТОМ БУДЕТ СВЯЗЬ ПО ForeinKey с кастомной моделью юзера
+    author = models.ForeignKey(
         to=User,
         verbose_name='Автор',
         related_name='recipes',
@@ -122,3 +122,55 @@ class AmountIngredients(models.Model):
 
     def __str__(self) -> str:
         return f'{self.amount} {self.ingredients}'
+
+
+class Favourites(models.Model):
+    recipe = models.ForeignKey(
+        verbose_name='Понравившиеся рецепты',
+        related_name='in_fovourites',
+        to=Recipe,
+        on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        verbose_name='Пользователь',
+        related_name='favourites',
+        to=User,
+        on_delete=models.CASCADE
+    )
+    add_date = models.DateTimeField(
+        verbose_name='Дата добавления',
+        auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = 'Избранный рецепт'
+        verbose_name_plural = 'Избранные рецепты'
+
+    def __str__(self) -> str:
+        return f'{self.user} -> {self.recipe}'
+
+
+class BuyLists():
+    recipe = models.ForeignKey(
+        verbose_name='Рецепты в списке покупок',
+        related_name='in_buylist',
+        to=Recipe,
+        on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        verbose_name='Владелец списка покупок',
+        related_name='buylists',
+        to=User,
+        on_delete=models.CASCADE
+    )
+    add_date = models.DateTimeField(
+        verbose_name='Дата добавления',
+        auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = 'Рецепт в списке покупок'
+        verbose_name_plural = 'Рецепты в списке покупок'
+
+    def __str__(self) -> str:
+        return f'{self.user} -> {self.recipe}'
