@@ -6,15 +6,15 @@ from .models import (AmountIngredients, BuyLists, Favourites, Ingredient,
 EMPTY_VALUE = 'Значение не указано'
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'title', 'author',)
+    list_display = ('pk', 'name', 'author',)
     fields = (
-        ('title', 'cooking_time'),
+        ('name', 'cooking_time'),
         ('author', 'tags'),
-        ('description',),
+        ('text',),
         ('image',),
     )
-    search_fields = ('author', 'title', 'tags')
-    list_filter = ('author', 'title', 'tags')
+    search_fields = ('author', 'name', 'tags')
+    list_filter = ('author', 'name', 'tags')
     empty_value_display = EMPTY_VALUE
     save_on_top = True
 

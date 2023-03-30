@@ -1,3 +1,4 @@
+from core.limits import Limits
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -5,24 +6,29 @@ from django.db import models
 class MyUser(AbstractUser):
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
+        max_length=Limits.LEN_EMAIL_LIMIT,
         unique=True,
         help_text='Обязательно для заполнения'
     )
     username = models.CharField(
         verbose_name='Юзернейм',
+        max_length=Limits.LEN_USERS_NAME_LIMIT,
         unique=True,
         help_text='Обязательно для заполнения'
     )
     first_name = models.CharField(
         verbose_name='Имя',
+        max_length=Limits.LEN_USERS_NAME_LIMIT,
         help_text='Обязательно для заполнения'
     )
     last_name = models.CharField(
         verbose_name='Фамилия',
+        max_length=Limits.LEN_USERS_NAME_LIMIT,
         help_text='Обязательно для заполнения'
     )
     password = models.CharField(
         verbose_name='Пароль',
+        max_length=Limits.LEN_USERS_PASSWORD_LIMIT,
         help_text='Обязательно для заполнения'
     )
 

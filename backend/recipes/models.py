@@ -1,4 +1,6 @@
+from core.limits import Limits
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .models import Ingredient, Recipe, Tag
@@ -9,15 +11,17 @@ User = get_user_model
 class Tag(models.Model):
     name = models.CharField(
         verbose_name='Название',
-        max_length=30,
+        max_length=Limits.LEN_NAME_LIMIT,
         unique=True
     )
     color = models.CharField(
         verbose_name='Цвет',
+        max_length=Limits.LEN_HEX_CODE_LIMIT,
         unique=True
     )
     slug = models.SlugField(
         verbose_name='Слаг',
+        max_length=Limits.LEN_NAME_LIMIT,
         unique=True,
         db_index=True
     )
@@ -33,10 +37,12 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(
         verbose_name='Название',
+        max_length=Limits.LEN_NAME_LIMIT,
         db_index=True
     )
-    unit = models.CharField(
-        verbose_name='Единица измерения'
+    measurement_unit = models.CharField(
+        verbose_name='Единица измерения',
+        max_length=Limits.LEN_NAME_LIMIT,
     )
 
     class Meta:
@@ -45,7 +51,7 @@ class Ingredient(models.Model):
         ordering = ('name',)
 
     def __str__(self) -> str:
-        return f'{self.name} {self.unit}'
+        return f'{self.name} {self.measurement_unit}'
 
 
 class Recipe(models.Model):
@@ -56,13 +62,13 @@ class Recipe(models.Model):
         on_delete=models.SET_NULL,
         null=True
     )
-    title = models.CharField(
+    name = models.CharField(
         verbose_name='Название блюда',
-        max_length=100
+        max_length=Limits.LEN_NAME_LIMIT
     )
-    description = models.TextField(
+    text = models.TextField(
         verbose_name='Описание',
-        max_length=5000
+        max_length=Limits.LEN_TEXT_LIMIT
     )
     image = models.ImageField(
         verbose_name='Иллюстрация',
@@ -81,7 +87,17 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления',
-        default=0
+        default=0,
+        validators=(
+            MinValueValidator(
+                Limits.MIN_COOKING_TIME.value,
+                'Ваше блюдо уже готово!',
+            ),
+            MaxValueValidator(
+                Limits.MAX_COOKING_TIME.value,
+                'Очень долго ждать...',
+            ),
+        )
     )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
@@ -94,7 +110,7 @@ class Recipe(models.Model):
         ordering = ('-pub_date', )
 
     def __str__(self) -> str:
-        return f'{self.title}. Автор: {self.author.username}'
+        return f'{self.name}. Автор: {self.author.username}'
 
 
 class AmountIngredients(models.Model):
@@ -112,7 +128,11 @@ class AmountIngredients(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество ингредиентов',
-        default=0
+        default=0,
+        validators=MinValueValidator(
+            Limits.MIN_AMOUNT_INGREDIENTS.value,
+            'Нужен хотя бы один ингредиент!'
+        )
     )
 
     class Meta:
