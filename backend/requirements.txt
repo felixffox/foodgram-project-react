@@ -4,6 +4,7 @@ django-filter==23.1
 djangorestframework==3.14.0
 importlib-metadata==6.1.0
 Markdown==3.4.3
+Pillow==9.5.0
 psycopg2==2.9.5
 pytz==2023.2
 sqlparse==0.4.3

@@ -4,9 +4,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import CheckConstraint, Q, UniqueConstraint
 
-from .models import Ingredient, Recipe, Tag
+#from .models import Ingredient, Recipe, Tag
 
-User = get_user_model
+User = get_user_model()
 
 
 class Tag(models.Model):
@@ -71,7 +71,7 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     author = models.ForeignKey(
-        to=User,
+        User,
         verbose_name='Автор',
         related_name='recipes',
         on_delete=models.SET_NULL,
@@ -90,15 +90,15 @@ class Recipe(models.Model):
         upload_to='recipe_images/'
     )
     ingredients = models.ManyToManyField(
+        to=Ingredient,
         verbose_name='Ингредиенты блюда',
         related_name='recipes',
-        to=Ingredient,
-        through='recipes.AmountIngredient',
+        through='recipes.AmountIngredients',
     )
     tags = models.ManyToManyField(
+        to=Tag,
         verbose_name='Тег',
         related_name='recipes',
-        to=Tag
     )
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления',
@@ -140,23 +140,29 @@ class Recipe(models.Model):
 
 class AmountIngredients(models.Model):
     recipe = models.ForeignKey(
+        to=Recipe,
         verbose_name='В каких рецептах',
         related_name='ingredient',
-        to=Recipe,
         on_delete=models.CASCADE
     )
     ingredients = models.ForeignKey(
+        to=Ingredient,
         verbose_name='Связанные ингредиенты',
         related_name='recipe',
-        to=Ingredient,
         on_delete=models.CASCADE
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество ингредиентов',
         default=0,
-        validators=MinValueValidator(
-            Limits.MIN_AMOUNT_INGREDIENTS.value,
-            'Нужен хотя бы один ингредиент!'
+        validators=(
+            MinValueValidator(
+                Limits.MIN_AMOUNT_INGREDIENTS.value,
+                message='Нужен хотя бы один ингредиент!'
+            ),
+            MaxValueValidator(
+                Limits.MAX_AMOUNT_INGREDIENTS.value,
+                message='Слишком много!'
+            )
         )
     )
 
@@ -177,15 +183,15 @@ class AmountIngredients(models.Model):
 
 class Favourites(models.Model):
     recipe = models.ForeignKey(
+        to=Recipe,
         verbose_name='Понравившиеся рецепты',
         related_name='in_fovourites',
-        to=Recipe,
         on_delete=models.CASCADE
     )
     user = models.ForeignKey(
+        to=User,
         verbose_name='Пользователь',
         related_name='favourites',
-        to=User,
         on_delete=models.CASCADE
     )
     add_date = models.DateTimeField(
@@ -207,17 +213,17 @@ class Favourites(models.Model):
         return f'{self.user} -> {self.recipe}'
 
 
-class BuyLists():
+class BuyLists(models.Model):
     recipe = models.ForeignKey(
+        to=Recipe,
         verbose_name='Рецепты в списке покупок',
         related_name='in_buylist',
-        to=Recipe,
         on_delete=models.CASCADE
     )
     user = models.ForeignKey(
+        to=User,
         verbose_name='Владелец списка покупок',
         related_name='buylists',
-        to=User,
         on_delete=models.CASCADE
     )
     add_date = models.DateTimeField(

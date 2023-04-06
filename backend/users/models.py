@@ -32,6 +32,10 @@ class MyUser(AbstractUser):
         max_length=Limits.LEN_USERS_PASSWORD_LIMIT,
         help_text='Обязательно для заполнения'
     )
+    is_active = models.BooleanField(
+        verbose_name='Активирован',
+        default=True,
+    )
 
     class Meta:
         verbose_name = 'Пользователь'

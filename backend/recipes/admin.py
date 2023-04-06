@@ -19,7 +19,7 @@ class RecipeAdmin(admin.ModelAdmin):
     save_on_top = True
 
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'unit')
+    list_display = ('name', 'measurement_unit')
     search_fields = ('name',)
     list_filter = ('name',)
     empty_value_display = EMPTY_VALUE
