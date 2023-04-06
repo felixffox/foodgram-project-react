@@ -2,9 +2,12 @@ from core.limits import Limits
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import CheckConstraint, Q, UniqueConstraint
+from django.db.models import CharField, CheckConstraint, Q, UniqueConstraint
+from django.db.models.functions import Length
 
-#from .models import Ingredient, Recipe, Tag
+# from .models import Ingredient, Recipe, Tag
+
+CharField.register_lookup(Length)
 
 User = get_user_model()
 
@@ -105,11 +108,11 @@ class Recipe(models.Model):
         default=0,
         validators=(
             MinValueValidator(
-                Limits.MIN_COOKING_TIME.value,
+                Limits.MIN_COOKING_TIME,
                 'Ваше блюдо уже готово!',
             ),
             MaxValueValidator(
-                Limits.MAX_COOKING_TIME.value,
+                Limits.MAX_COOKING_TIME,
                 'Очень долго ждать...',
             ),
         )
@@ -156,11 +159,11 @@ class AmountIngredients(models.Model):
         default=0,
         validators=(
             MinValueValidator(
-                Limits.MIN_AMOUNT_INGREDIENTS.value,
+                Limits.MIN_AMOUNT_INGREDIENTS,
                 message='Нужен хотя бы один ингредиент!'
             ),
             MaxValueValidator(
-                Limits.MAX_AMOUNT_INGREDIENTS.value,
+                Limits.MAX_AMOUNT_INGREDIENTS,
                 message='Слишком много!'
             )
         )
