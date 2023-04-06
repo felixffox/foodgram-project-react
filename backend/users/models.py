@@ -1,6 +1,7 @@
 from core.limits import Limits
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import CheckConstraint, F, Q, UniqueConstraint
 
 
 class MyUser(AbstractUser):
@@ -62,6 +63,16 @@ class Subscriptions(models.Model):
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
+        constraints = (
+            UniqueConstraint(
+                fields=('author', 'user'),
+                name='\nRepeat subscription\n',
+            ),
+            CheckConstraint(
+                check=~Q(author=F('user')),
+                name='\nNo self sibscription\n'
+            )
+        )
 
     def __str__(self) -> str:
         return f'{self.user.username} -> {self.author.username}'
