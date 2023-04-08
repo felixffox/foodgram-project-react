@@ -1,11 +1,10 @@
+from colorfield.fields import ColorField
 from core.limits import Limits
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import CharField, CheckConstraint, Q, UniqueConstraint
 from django.db.models.functions import Length
-
-# from .models import Ingredient, Recipe, Tag
 
 CharField.register_lookup(Length)
 
@@ -18,8 +17,10 @@ class Tag(models.Model):
         max_length=Limits.LEN_NAME_LIMIT,
         unique=True
     )
-    color = models.CharField(
-        verbose_name='Цвет',
+    color = ColorField(
+        format='hex',
+        default='#FF0000',
+        verbose_name='Цветовой HEX-код',
         max_length=Limits.LEN_HEX_CODE_LIMIT,
         unique=True
     )
