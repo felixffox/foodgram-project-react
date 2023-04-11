@@ -1,11 +1,5 @@
-import base64
-from collections import OrderedDict
-
 from core.fields import Base64ImageField, Hex2NameColor
-from core.services import recipe_ingredient_set
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
 from django.db.models import F, QuerySet
 from recipes.models import (AmountIngredients, BuyLists, Favourites,
                             Ingredient, Recipe, Tag)
@@ -41,7 +35,7 @@ class UserSerializer(serializers.ModelSerializer):
         }
         read_only_fields = 'is_subscribed'
 
-    def get_is_subscribed(self, obj: User) -> bool:
+    def get_is_subscribed(self, obj):
         user = self.context.get('view').request.user
         
         if user.is_anonymous or (user == obj):
@@ -49,7 +43,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         return user.subscriptions.filter('author'==obj).exists()
 
-    def create(self, validated_data: dict) -> User:
+    def create(self, validated_data):
         user = User(
             email=validated_data['email'],
             username=validated_data['username'],
@@ -78,7 +72,7 @@ class UserSubscriptionsSerializer(UserSerializer):
         )
         read_only_fields = '__all__'
 
-    def get_recipes_count(self, obj: User) -> int:
+    def get_recipes_count(self, obj):
         return obj.recipes.count()
 
 class TagSerializer(serializers.ModelSerializer):
@@ -129,13 +123,13 @@ class RecipeSerializer(serializers.ModelSerializer):
             'is_in_shopping_cart',
         )
 
-    def get_ingredients(self, recipe: Recipe) -> QuerySet[dict]:
+    def get_ingredients(self, recipe):
         ingredients = recipe.ingredients.values(
             'id', 'name', 'measurement_unit', amount=F('recipe__amount')
         )
         return ingredients
 
-    def get_is_favourited(self, recipe: Recipe) -> bool:
+    def get_is_favourited(self, recipe):
         user = self.context.get('view').request.user
 
         if user.is_anonymous:
@@ -143,7 +137,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         return user.favourites.filter(recipe=recipe).exists()
 
-    def get_is_in_shopping_cart(self, recipe: Recipe) -> bool:
+    def get_is_in_shopping_cart(self, recipe):
         user = self.context.get('view').request.user
 
         if user.is_anonymous:
