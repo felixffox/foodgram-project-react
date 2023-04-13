@@ -31,9 +31,10 @@ class MyUser(AbstractUser):
         max_length=Limits.LEN_USERS_PASSWORD_LIMIT,
         help_text='Обязательно для заполнения'
     )
-    is_active = models.BooleanField(
-        verbose_name='Активирован',
-        default=True,
+    is_subscribed = models.BooleanField(
+        default=False,
+        verbose_name='Подписан ли текущий пользователь на этого',
+        help_text='Отметьте для подписки на данного пользователя'
     )
 
     class Meta:
