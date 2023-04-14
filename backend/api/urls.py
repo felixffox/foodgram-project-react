@@ -10,6 +10,7 @@ router.register(r'tags', TagViewSet)
 router.register(r'ingredients', IngredientViewSet)
 router.register(r'recipes', RecipeViewSet)
 #router.register(r'users', MyUserViewSet)
+#router.register(r'auth', MyUserViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

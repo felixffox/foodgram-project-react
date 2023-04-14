@@ -17,17 +17,17 @@ from .serializers import (AmountIngredientSerializer, IngredientSerializer,
                           TagSerializer, UserSerializer,
                           UserSubscriptionsSerializer)
 
-# TODO Подготовить фильтры и пагинатор
+# TODO Подготовить фильтры и пагинатор, переопределить методы для вьюсетов через декоратор action
 
-#class MyUserViewSet():
-#    queryset = MyUser.objects.all()
-#    serializer_class = UserSerializer
-#    search_fields = ('username', 'email')
-#    permission_classes = AllowAny
+class MyUserViewSet(UserViewSet):
+    queryset = MyUser.objects.all()
+    serializer_class = UserSerializer
+    search_fields = ('username', 'email')
+    permission_classes = (AllowAny, )
 
 class SubscribtionViewSet(viewsets.ModelViewSet):
     serializer_class = UserSubscriptionsSerializer
-    permission_classes = IsAuthenticated
+    permission_classes = (IsAuthenticated, )
     
     def get_queryset(self):
         return get_list_or_404(MyUser, following__user=self.request.user)
@@ -35,12 +35,12 @@ class SubscribtionViewSet(viewsets.ModelViewSet):
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = IsAdminOrReadOnly
+    permission_classes = (IsAdminOrReadOnly, )
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = IsAdminOrReadOnly
+    permission_classes = (IsAdminOrReadOnly, )
     filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
     #filterset_class = IngredientFilter
 
@@ -48,7 +48,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = IsAuthorOrReadOnly
+    permission_classes = (IsAuthorOrReadOnly, )
     #pagination_class = LimitPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     #filterset_class = RecipeFilter

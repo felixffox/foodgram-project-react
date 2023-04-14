@@ -1,3 +1,5 @@
+"""Дополнительные поля"""
+
 import base64
 
 import webcolors

@@ -14,7 +14,7 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = 'id', 'name', 'image', 'cooking_time'
-        read_only_fields = '__all__'
+        read_only_fields = ('__all__', )
 
 class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
@@ -33,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True}
         }
-        read_only_fields = 'is_subscribed'
+        read_only_fields = ('is_subscribed', )
 
     def get_is_subscribed(self, obj):
         user = self.context.get('view').request.user
@@ -70,7 +70,7 @@ class UserSubscriptionsSerializer(UserSerializer):
             'recipes',
             'recipes_count',
         )
-        read_only_fields = '__all__'
+        read_only_fields = ('__all__', )
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -81,13 +81,13 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
-        read_only_fields = '__all__'
+        read_only_fields = ('__all__', )
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = '__all__'
-        read_only_fields = '__all__'
+        read_only_fields = ('__all__', )
 
 class AmountIngredientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -129,7 +129,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
         return ingredients
 
-    def get_is_favourited(self, recipe):
+    def get_is_favorited(self, recipe):
         user = self.context.get('view').request.user
 
         if user.is_anonymous:

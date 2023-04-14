@@ -38,13 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api',
-    'recipes',
-    'users',
     'rest_framework.authtoken',
     'rest_framework',
     'djoser',
     'colorfield',
+    'api',
+    'recipes',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -154,16 +154,16 @@ DJOSER = {
     'HIDE_USERS': False,
     'SEND_ACTIVATION_EMAIL': False,
 
-#    'SERIALIZERS': {
-#        'user_create': 'api.serializers.CreateUserSerializer',
-#        'current_user': 'api.serializers.CustomUserSerializer',
-#        'user': 'api.serializers.CustomUserSerializer',
-#    },
-#    'PERMISSIONS': {
-#        'user': ('rest_framework.permissions.IsAuthenticatedOrReadOnly',),
-#        'user_list': ('rest_framework.permissions.AllowAny',),
-#        'token_create': ['rest_framework.permissions.AllowAny'],
-#    },
+    'SERIALIZERS': {
+        'user_create': 'api.serializers.UserSerializer',
+        'current_user': 'api.serializers.UserSerializer',
+        'user': 'api.serializers.UserSerializer',
+    },
+    'PERMISSIONS': {
+        'user': ('rest_framework.permissions.IsAuthenticatedOrReadOnly',),
+        'user_list': ('rest_framework.permissions.AllowAny',),
+        'token_create': ['rest_framework.permissions.AllowAny'],
+    },
 }
 
 # Default primary key field type
