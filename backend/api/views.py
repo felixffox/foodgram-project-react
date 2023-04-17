@@ -18,7 +18,7 @@ from .serializers import (AmountIngredientSerializer, IngredientSerializer,
                           TagSerializer, UserSerializer,
                           UserSubscriptionsSerializer)
 
-# TODO Подготовить фильтры и пагинатор, переопределить методы для вьюсетов через декоратор action
+# TODO Подготовить фильтры, переопределить методы для вьюсетов через декоратор action
 
 class MyUserViewSet(UserViewSet):
     queryset = MyUser.objects.all()
@@ -27,13 +27,45 @@ class MyUserViewSet(UserViewSet):
     permission_classes = (AllowAny, )
     pagination_class = PageNumberPagination
 
-class SubscribtionViewSet(viewsets.ModelViewSet):
-    serializer_class = UserSubscriptionsSerializer
-    permission_classes = (IsAuthenticated, )
-    pagination_class = PageNumberPagination
-    
-    def get_queryset(self):
-        return get_list_or_404(MyUser, following__user=self.request.user)
+    @action(
+        methods=['GET'],
+        detail=False,
+        permission_classes=(IsAuthenticated, )
+    )
+    def subscriptions(self, request):
+        user = request.user
+        queryset = Subscriptions.objects.filter(user=user)
+        page = self.paginate_queryset(queryset)
+        serializer = UserSubscriptionsSerializer(
+            page, many=True, context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        methods=['POST', 'DELETE'],
+        detail=True,
+        permission_classes=(IsAuthenticated, )
+    )
+    def subscribe(self, request, pk=None):
+        author = get_object_or_404(MyUser, pk=pk)
+        if request.method == 'POST':
+            serializer = UserSubscriptionsSerializer(
+                Subscriptions.objects.create(user=request.user, author=author),
+                context={'request': request},
+            )
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED
+            )
+        Subscriptions.objects.filter(user=request.user, author=author).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+#class SubscribtionViewSet(viewsets.ModelViewSet):
+#    serializer_class = UserSubscriptionsSerializer
+#    permission_classes = (IsAuthenticated, )
+#    pagination_class = PageNumberPagination
+#    
+#    def get_queryset(self):
+#        return get_list_or_404(MyUser, following__user=self.request.user)
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
@@ -55,6 +87,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthorOrReadOnly, )
     pagination_class = PageNumberPagination
-    #pagination_class = LimitPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     #filterset_class = RecipeFilter
