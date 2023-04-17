@@ -46,8 +46,8 @@ class MyUserViewSet(UserViewSet):
         detail=True,
         permission_classes=(IsAuthenticated, )
     )
-    def subscribe(self, request, pk=None):
-        author = get_object_or_404(MyUser, pk=pk)
+    def subscribe(self, request, id=None):
+        author = get_object_or_404(MyUser, id=id)
         if request.method == 'POST':
             serializer = UserSubscriptionsSerializer(
                 Subscriptions.objects.create(user=request.user, author=author),

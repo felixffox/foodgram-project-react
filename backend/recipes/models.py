@@ -151,6 +151,30 @@ class AmountIngredients(models.Model):
         return f'{self.amount} {self.ingredients}'
 
 
+class Subscription(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower',
+        verbose_name='Пользователь',
+        help_text='Пользователь',
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following',
+        verbose_name='Избранный автор',
+        help_text='Избранный автор',
+    )
+
+    class Meta:
+        verbose_name = 'Избранный автор'
+        verbose_name_plural = 'Избранные авторы'
+
+    def __str__(self):
+        return f'{self.user} {self.author}'
+
+
 class Favourites(models.Model):
     recipe = models.ForeignKey(
         to=Recipe,

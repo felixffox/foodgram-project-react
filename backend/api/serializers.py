@@ -2,7 +2,7 @@ from core.fields import Base64ImageField, Hex2NameColor
 from django.contrib.auth import get_user_model
 from django.db.models import F, QuerySet
 from recipes.models import (AmountIngredients, BuyLists, Favourites,
-                            Ingredient, Recipe, Tag)
+                            Ingredient, Recipe, Subscription, Tag)
 from rest_framework import serializers
 
 User = get_user_model()
@@ -55,25 +55,37 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 class UserSubscriptionsSerializer(UserSerializer):
-    recipes = ShortRecipeSerializer(many=True, read_only=True)
-    recipes_count = serializers.SerializerMethodField()
+    id = serializers.IntegerField(source='author.id')
+    email = serializers.EmailField(source='author.email')
+    username = serializers.CharField(source='author.username')
+    first_name = serializers.CharField(source='author.first_name')
+    last_name = serializers.CharField(source='author.last_name')
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            'recipes',
-            'recipes_count',
-        )
-        read_only_fields = ('__all__', )
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+                  'recipes', 'is_subscribed', 'recipes_count',)
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        recipes_limit = request.GET.get('recipes_limit')
+        recipes = Recipe.objects.filter(author=obj.author)
+        if recipes_limit:
+            recipes = recipes[:int(recipes_limit)]
+        serializer = SubscribeRecipeSerializer(recipes, many=True)
+        return serializer.data
 
     def get_recipes_count(self, obj):
-        return obj.recipes.count()
+        return Recipe.objects.filter(author=obj.author).count()
+
+    def get_is_subscribed(self, obj):
+        return Subscription.objects.filter(
+            user=obj.user,
+            author=obj.author
+        ).exists()
 
 class TagSerializer(serializers.ModelSerializer):
     color = Hex2NameColor()
@@ -93,6 +105,12 @@ class AmountIngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = AmountIngredients
         fields = ('id', 'amount')
+
+
+class SubscribeRecipeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time',)
 
 
 class RecipeSerializer(serializers.ModelSerializer):
