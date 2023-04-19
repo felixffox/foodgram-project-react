@@ -1,3 +1,4 @@
+from core.services import ActionMethods
 from django.http import FileResponse
 from django.shortcuts import get_list_or_404, get_object_or_404, render
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,8 +15,7 @@ from users.models import MyUser, Subscriptions
 
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (AmountIngredientSerializer, IngredientSerializer,
-                          RecipeSerializer, ShortRecipeSerializer,
-                          TagSerializer, UserSerializer,
+                          RecipeSerializer, TagSerializer, UserSerializer,
                           UserSubscriptionsSerializer)
 
 # TODO Подготовить фильтры, переопределить методы для вьюсетов через декоратор action
@@ -59,14 +59,6 @@ class MyUserViewSet(UserViewSet):
         Subscriptions.objects.filter(user=request.user, author=author).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-#class SubscribtionViewSet(viewsets.ModelViewSet):
-#    serializer_class = UserSubscriptionsSerializer
-#    permission_classes = (IsAuthenticated, )
-#    pagination_class = PageNumberPagination
-#    
-#    def get_queryset(self):
-#        return get_list_or_404(MyUser, following__user=self.request.user)
-
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -82,10 +74,43 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     #filterset_class = IngredientFilter
 
 
-class RecipeViewSet(viewsets.ModelViewSet):
+class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthorOrReadOnly, )
     pagination_class = PageNumberPagination
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, )
     #filterset_class = RecipeFilter
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    @action(
+        methods=('POST', 'DELETE'),
+        detail=True,
+        permission_classes=(IsAuthenticated, ),
+    )
+    def favorite(self, request, pk=None):
+        if request.method == 'POST':
+            return self.add_recipe(request, pk=pk, model=Favourites)
+
+        return self.delete_recipe(request, pk=pk, model=Favourites)
+
+    @action(
+        methods=('POST', 'DELETE'),
+        detail=True,
+        permission_classes=(IsAuthenticated, ),
+    )
+    def shopping_cart(self, request, pk=None):
+        if request.method == 'POST':
+            return self.add_recipe(request, pk=pk, model=BuyLists)
+
+        return self.delete_recipe(request, pk=pk, model=BuyLists)
+
+    @action(
+        methods=('GET'),
+        detail=False,
+        permission_classes=(IsAuthenticated,)
+    )
+    def download_shopping_cart(self, request):
+        pass

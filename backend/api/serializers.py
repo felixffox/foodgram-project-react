@@ -1,26 +1,26 @@
 from core.fields import Base64ImageField, Hex2NameColor
 from django.contrib.auth import get_user_model
 from django.db.models import F, QuerySet
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from recipes.models import (AmountIngredients, BuyLists, Favourites,
                             Ingredient, Recipe, Subscription, Tag)
 from rest_framework import serializers
+from users.models import MyUser
 
 User = get_user_model()
 
 
-class ShortRecipeSerializer(serializers.ModelSerializer):
-    """Усеченный набор полей сериализации Recipe
-    для применения в некоторых эндпоинтах"""
+class CreateUserSerializer(UserCreateSerializer):
     class Meta:
-        model = Recipe
-        fields = 'id', 'name', 'image', 'cooking_time'
-        read_only_fields = ('__all__', )
+        model = MyUser
+        fields = ('email', 'password', 'username', 'first_name', 'last_name',)
+        extra_kwargs = {'password': {'write_only': True}}
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
-        model = User
+        model = MyUser
         fields = (
             'email',
             'id',
@@ -43,17 +43,6 @@ class UserSerializer(serializers.ModelSerializer):
 
         return user.subscriptions.filter('author'==obj).exists()
 
-    def create(self, validated_data):
-        user = User(
-            email=validated_data['email'],
-            username=validated_data['username'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
-        )
-        user.set_password(validated_data['password'])
-        user.save()
-        return user
-
 class UserSubscriptionsSerializer(UserSerializer):
     id = serializers.IntegerField(source='author.id')
     email = serializers.EmailField(source='author.email')
@@ -68,18 +57,6 @@ class UserSubscriptionsSerializer(UserSerializer):
         model = User
         fields = ('email', 'id', 'username', 'first_name', 'last_name',
                   'recipes', 'is_subscribed', 'recipes_count',)
-
-    def get_recipes(self, obj):
-        request = self.context.get('request')
-        recipes_limit = request.GET.get('recipes_limit')
-        recipes = Recipe.objects.filter(author=obj.author)
-        if recipes_limit:
-            recipes = recipes[:int(recipes_limit)]
-        serializer = SubscribeRecipeSerializer(recipes, many=True)
-        return serializer.data
-
-    def get_recipes_count(self, obj):
-        return Recipe.objects.filter(author=obj.author).count()
 
     def get_is_subscribed(self, obj):
         return Subscription.objects.filter(
@@ -140,6 +117,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             'is_favorite',
             'is_in_shopping_cart',
         )
+        
 
     def get_ingredients(self, recipe):
         ingredients = recipe.ingredients.values(
@@ -147,21 +125,19 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
         return ingredients
 
-    def get_is_favorited(self, recipe):
-        user = self.context.get('view').request.user
+    def get_is_favorited(self, obj):
+        user = self.context['request'].user.id
+        recipe = obj.id
+        return Favourites.objects.filter(
+            user_id=user,
+            recipe_id=recipe).exists()
 
-        if user.is_anonymous:
-            return False
-
-        return user.favourites.filter(recipe=recipe).exists()
-
-    def get_is_in_shopping_cart(self, recipe):
-        user = self.context.get('view').request.user
-
-        if user.is_anonymous:
-            return False
-
-        return user.carts.filter(recipe=recipe).exists()
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context['request'].user.id
+        recipe = obj.id
+        return BuyLists.objects.filter(
+            user_id=user,
+            recipe_id=recipe).exists()
 
     def validate_ingredients(self, ingredients):
         if not ingredients:
