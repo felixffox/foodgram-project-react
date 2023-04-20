@@ -41,7 +41,7 @@ class UserSerializer(UserSerializer):
         if user.is_anonymous or (user == obj):
             return False
 
-        return user.subscriptions.filter('author'==obj).exists()
+        return user.subscriptions.filter(author=obj).exists()
 
 class UserSubscriptionsSerializer(UserSerializer):
     id = serializers.IntegerField(source='author.id')
@@ -95,8 +95,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
     ingredients = AmountIngredientSerializer(many=True)
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
+    #is_favorited = serializers.SerializerMethodField()
+    #is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField()
 
     class Meta:
@@ -106,16 +106,16 @@ class RecipeSerializer(serializers.ModelSerializer):
             'tags',
             'author',
             'ingredients',
-            'is_favorited',
-            'is_in_shopping_cart',
+        #    'is_favorited',
+        #    'is_in_shopping_cart',
             'name',
             'image',
             'text',
             'cooking_time'
         )
         read_only_fields = (
-            'is_favorite',
-            'is_in_shopping_cart',
+        #    'is_favorite',
+        #    'is_in_shopping_cart',
         )
         
 
@@ -125,19 +125,18 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
         return ingredients
 
-    def get_is_favorited(self, obj):
-        user = self.context['request'].user.id
-        recipe = obj.id
-        return Favourites.objects.filter(
-            user_id=user,
-            recipe_id=recipe).exists()
+    #def get_is_favorited(self, obj):
+    #    user = self.context.get('request').user
+    #    if user.is_anonymous:
+    #        return False
+    #    return Recipe.objects.filter(in_favourites__user=user, id=obj.id).exists()
+#
+    #def get_is_in_shopping_cart(self, obj):
+    #    user = self.context.get('request').user
+    #    if user.is_anonymous:
+    #        return False
+    #    return Recipe.objects.filter(in_buylist__user=user, id=obj.id).exists()
 
-    def get_is_in_shopping_cart(self, obj):
-        user = self.context['request'].user.id
-        recipe = obj.id
-        return BuyLists.objects.filter(
-            user_id=user,
-            recipe_id=recipe).exists()
 
     def validate_ingredients(self, ingredients):
         if not ingredients:
