@@ -48,7 +48,7 @@ class MyUser(AbstractUser):
 class Subscriptions(models.Model):
     author = models.ForeignKey(
         verbose_name='Автор рецепта',
-        related_name='subscribers',
+        related_name='subscribe',
         to=MyUser,
         on_delete=models.CASCADE,
     )

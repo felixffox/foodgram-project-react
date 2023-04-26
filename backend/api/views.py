@@ -131,9 +131,9 @@ class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
     )
     def shopping_cart(self, request, pk=None):
         if request.method == 'POST':
-            return self.add_obj(BuyLists, request, pk=pk)
+            return self.add_obj(BuyLists, request.user, pk=pk)
 
-        return self.delete_obj(BuyLists, request, pk=pk)
+        return self.delete_obj(BuyLists, request.user, pk=pk)
 
     @action(
         methods=['GET'],
@@ -148,7 +148,8 @@ class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
             recipe__in_buylist__user=request.user).values(
             'ingredients__name', 'ingredients__measurement_unit'
             ).annotate(
-                ingredient_amount=Sum('amount'))
+                ingredient_amount=Sum('amount')
+            ).order_by('ingredients__name')
 
         pdfmetrics.registerFont(
             TTFont(
