@@ -1,4 +1,3 @@
-from core.fields import Base64ImageField, Hex2NameColor
 from django.contrib.auth import get_user_model
 from django.db.models import F
 from django.shortcuts import get_object_or_404
@@ -6,6 +5,8 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from recipes.models import AmountIngredients, Ingredient, Recipe, Tag
 from rest_framework import serializers
 from users.models import MyUser, Subscriptions
+
+from .fields import Base64ImageField, Hex2NameColor
 
 User = get_user_model()
 
@@ -99,14 +100,14 @@ class IngredientSerializer(serializers.ModelSerializer):
         read_only_fields = ('__all__', )
 
 class IngredientRecipeReadSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='ingredient.id')
-    name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit')
+    #id = serializers.ReadOnlyField(source='ingredient.id')
+    #name = serializers.ReadOnlyField(source='ingredient.name')
+    #measurement_unit = serializers.ReadOnlyField(
+    #    source='ingredient.measurement_unit')
     amount = serializers.IntegerField()
 
     class Meta:
-        model = AmountIngredients
+        model = Ingredient
         fields = ('id', 'name', 'amount', 'measurement_unit')
 
 class IngredientRecipeCreateSerializer(serializers.ModelSerializer):
@@ -137,8 +138,7 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
 
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
-    ingredients = IngredientRecipeReadSerializer(
-        source='recipe',
+    ingredients = IngredientSerializer(
         many=True,
         read_only=True
     )
