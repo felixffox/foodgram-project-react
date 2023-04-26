@@ -1,4 +1,3 @@
-from core.limits import Limits
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -6,29 +5,29 @@ from django.db import models
 class MyUser(AbstractUser):
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
-        max_length=Limits.LEN_EMAIL_LIMIT,
+        max_length=254,
         unique=True,
         help_text='Обязательно для заполнения'
     )
     username = models.CharField(
         verbose_name='Юзернейм',
-        max_length=Limits.LEN_USERS_NAME_LIMIT,
+        max_length=150,
         unique=True,
         help_text='Обязательно для заполнения'
     )
     first_name = models.CharField(
         verbose_name='Имя',
-        max_length=Limits.LEN_USERS_NAME_LIMIT,
+        max_length=150,
         help_text='Обязательно для заполнения'
     )
     last_name = models.CharField(
         verbose_name='Фамилия',
-        max_length=Limits.LEN_USERS_NAME_LIMIT,
+        max_length=150,
         help_text='Обязательно для заполнения'
     )
     password = models.CharField(
         verbose_name='Пароль',
-        max_length=Limits.LEN_USERS_PASSWORD_LIMIT,
+        max_length=150,
         help_text='Обязательно для заполнения'
     )
     is_subscribed = models.BooleanField(
@@ -49,7 +48,7 @@ class MyUser(AbstractUser):
 class Subscriptions(models.Model):
     author = models.ForeignKey(
         verbose_name='Автор рецепта',
-        related_name='subscribers',
+        related_name='subscribe',
         to=MyUser,
         on_delete=models.CASCADE,
     )
@@ -67,6 +66,10 @@ class Subscriptions(models.Model):
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'author'],
+                                    name='unique_following')
+        ]
 
     def __str__(self) -> str:
         return f'{self.user.username} -> {self.author.username}'

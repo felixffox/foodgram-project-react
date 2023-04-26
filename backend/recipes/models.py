@@ -1,5 +1,4 @@
 from colorfield.fields import ColorField
-from core.limits import Limits
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -10,19 +9,19 @@ User = get_user_model()
 class Tag(models.Model):
     name = models.CharField(
         verbose_name='Название',
-        max_length=Limits.LEN_NAME_LIMIT,
+        max_length=200,
         unique=True
     )
     color = ColorField(
         format='hex',
         default='#FF0000',
         verbose_name='Цветовой HEX-код',
-        max_length=Limits.LEN_HEX_CODE_LIMIT,
+        max_length=7,
         unique=True
     )
     slug = models.SlugField(
         verbose_name='Слаг',
-        max_length=Limits.LEN_NAME_LIMIT,
+        max_length=200,
         unique=True,
         db_index=True
     )
@@ -38,12 +37,12 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(
         verbose_name='Название',
-        max_length=Limits.LEN_NAME_LIMIT,
+        max_length=200,
         db_index=True
     )
     measurement_unit = models.CharField(
         verbose_name='Единица измерения',
-        max_length=Limits.LEN_NAME_LIMIT,
+        max_length=200,
     )
 
     class Meta:
@@ -60,16 +59,15 @@ class Recipe(models.Model):
         User,
         verbose_name='Автор',
         related_name='recipes',
-        on_delete=models.SET_NULL,
-        null=True
+        on_delete=models.CASCADE
     )
     name = models.CharField(
         verbose_name='Название блюда',
-        max_length=Limits.LEN_NAME_LIMIT
+        max_length=200
     )
     text = models.TextField(
         verbose_name='Описание',
-        max_length=Limits.LEN_TEXT_LIMIT
+        max_length=5000
     )
     image = models.ImageField(
         verbose_name='Иллюстрация',
@@ -79,7 +77,7 @@ class Recipe(models.Model):
         to=Ingredient,
         verbose_name='Ингредиенты блюда',
         related_name='recipes',
-        through='recipes.AmountIngredients',
+        through='AmountIngredients',
     )
     tags = models.ManyToManyField(
         to=Tag,
@@ -91,11 +89,11 @@ class Recipe(models.Model):
         default=0,
         validators=(
             MinValueValidator(
-                Limits.MIN_COOKING_TIME,
+                1,
                 'Ваше блюдо уже готово!',
             ),
             MaxValueValidator(
-                Limits.MAX_COOKING_TIME,
+                500,
                 'Очень долго ждать...',
             ),
         )
@@ -132,11 +130,11 @@ class AmountIngredients(models.Model):
         default=0,
         validators=(
             MinValueValidator(
-                Limits.MIN_AMOUNT_INGREDIENTS,
+                1,
                 message='Нужен хотя бы один ингредиент!'
             ),
             MaxValueValidator(
-                Limits.MAX_AMOUNT_INGREDIENTS,
+                50,
                 message='Слишком много!'
             )
         )
@@ -149,30 +147,6 @@ class AmountIngredients(models.Model):
 
     def __str__(self) -> str:
         return f'{self.amount} {self.ingredients}'
-
-
-class Subscription(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='follower',
-        verbose_name='Пользователь',
-        help_text='Пользователь',
-    )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='following',
-        verbose_name='Избранный автор',
-        help_text='Избранный автор',
-    )
-
-    class Meta:
-        verbose_name = 'Избранный автор'
-        verbose_name_plural = 'Избранные авторы'
-
-    def __str__(self):
-        return f'{self.user} {self.author}'
 
 
 class Favourites(models.Model):
@@ -196,6 +170,10 @@ class Favourites(models.Model):
     class Meta:
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'recipe'],
+                                    name='unique favorite recipe for user')
+        ]
 
     def __str__(self) -> str:
         return f'{self.user} -> {self.recipe}'
@@ -222,6 +200,10 @@ class BuyLists(models.Model):
     class Meta:
         verbose_name = 'Рецепт в списке покупок'
         verbose_name_plural = 'Рецепты в списке покупок'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'recipe'],
+                                    name='unique cart user')
+        ]
 
     def __str__(self) -> str:
         return f'{self.user} -> {self.recipe}'
