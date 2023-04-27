@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.db.models import F
-from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from recipes.models import AmountIngredients, Ingredient, Recipe, Tag
 from rest_framework import serializers
@@ -98,8 +97,7 @@ class IngredientRecipeReadSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'amount', 'measurement_unit')
 
 class IngredientRecipeCreateSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
-    amount = serializers.IntegerField()
+    id = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = AmountIngredients
@@ -120,6 +118,12 @@ class SubscribeRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time',)
 
+class ShortRecipeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
+    class Meta:
+        fields = ('id', 'name', 'image', 'cooking_time')
+        model = Recipe
 
 class ReadRecipeSerializer(serializers.ModelSerializer):
 
@@ -185,10 +189,13 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
         ).exists()
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
+    image = Base64ImageField()
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        many=True,
+    )
     ingredients = IngredientRecipeCreateSerializer(
-        source='ingredient',
         many=True,
         read_only=True
     )
@@ -206,35 +213,19 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('author',)
 
-    def get_ingredients(self, recipe):
-        ingredients = recipe.ingredients.values(
-            'id', 'name', 'measurement_unit', amount=F('ingredient__amount')
-        )
-        return ingredients
-
-    def get_tags(self, recipe):
-        tags = recipe.tags.values(
-            'id', 'name'
-        )
-        return tags
+    def to_representation(self, instance):
+        return ReadRecipeSerializer(instance, context=self.context).data
 
     def validate(self, data):
         ingredients = self.initial_data.get('ingredients')
         ingredient_list = []
-        for ingredient_item in ingredients:
-            ingredient = get_object_or_404(
-                Ingredient,
-                id=ingredient_item['id']
-            )
+        for ingredient in ingredients:
+            
             if ingredient in ingredient_list:
                 raise serializers.ValidationError(
                     'Ингредиенты должны быть уникальными')
             ingredient_list.append(ingredient)
-        for ingredient in ingredients:
-            if ingredient['amount'] < 1:
-                raise serializers.ValidationError(
-                    'Количество не может быть меньше 1!'
-                )
+        
         data['ingredients'] = ingredients
         return data
 
