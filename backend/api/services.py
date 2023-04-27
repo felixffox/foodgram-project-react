@@ -1,6 +1,6 @@
 """Служебные функции"""
 
-from api.serializers import CreateRecipeSerializer
+from api.serializers import ShortRecipeSerializer
 from django.shortcuts import get_object_or_404
 from recipes.models import Recipe
 from rest_framework import status
@@ -18,7 +18,7 @@ class ActionMethods:
             )
         recipe = get_object_or_404(Recipe, id=pk)
         model.objects.create(user=user, recipe=recipe)
-        serializer = CreateRecipeSerializer(recipe)
+        serializer = ShortRecipeSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete_obj(self, model, user, pk=None):
