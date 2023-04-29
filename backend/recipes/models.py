@@ -34,6 +34,7 @@ class Tag(models.Model):
     def __str__(self) -> str:
         return f'{self.name} {self.color}'
 
+
 class Ingredient(models.Model):
     name = models.CharField(
         verbose_name='Название',

@@ -5,6 +5,7 @@ from .models import (AmountIngredients, BuyLists, Favourites, Ingredient,
 
 EMPTY_VALUE = 'Значение не указано'
 
+
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'author',)
     fields = (
@@ -18,6 +19,7 @@ class RecipeAdmin(admin.ModelAdmin):
     empty_value_display = EMPTY_VALUE
     save_on_top = True
 
+
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
     search_fields = ('name',)
@@ -25,19 +27,23 @@ class IngredientAdmin(admin.ModelAdmin):
     empty_value_display = EMPTY_VALUE
     save_on_top = True
 
+
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'color')
     search_fields = ('name', 'color')
     empty_value_display = EMPTY_VALUE
     save_on_top = True
 
+
 class FavouritesAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe', 'add_date')
     search_fields = ('user', 'recipe')
 
+
 class BuyListsAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe', 'add_date')
     search_fields = ('user', 'recipe')
+
 
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
