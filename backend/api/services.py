@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 
 class ActionMethods:
-    """Класс для экшн методов добавления и 
+    """Класс для экшн методов добавления и
     удаления рецепта в корзину и избранное во вьюсетах"""
     def add_obj(self, model, user, pk=None):
         if model.objects.filter(user=user, recipe__id=pk).exists():

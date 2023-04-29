@@ -76,19 +76,21 @@ class MyUserViewSet(UserViewSet):
             return Response(
                 serializer.data, status=status.HTTP_201_CREATED
             )
-        
+
         if not subscribe.exists():
             return Response({
                 'errors': 'Вы не подписаны на данного пользователя'
             }, status=status.HTTP_400_BAD_REQUEST)
-        subscribe.delete() 
-        return Response(status=status.HTTP_204_NO_CONTENT) 
+        subscribe.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (IsAdminOrReadOnly, )
     pagination_class = PageNumberPagination
+
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
@@ -97,6 +99,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
     filterset_field = ('name', )
+
 
 class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
     queryset = Recipe.objects.all()
@@ -148,9 +151,9 @@ class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
         ingredients = AmountIngredients.objects.filter(
             recipe__in_buylist__user=request.user).values(
             'ingredients__name', 'ingredients__measurement_unit'
-            ).annotate(
-                ingredient_amount=Sum('amount')
-            ).order_by('ingredients__name')
+                ).annotate(
+                    ingredient_amount=Sum('amount')
+                    ).order_by('ingredients__name')
 
         pdfmetrics.registerFont(
             TTFont(
@@ -158,7 +161,7 @@ class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
                 'fonts/droid-serif.ttf'
             )
         )
-        buffer = io.BytesIO()  
+        buffer = io.BytesIO()
         pdf_file = canvas.Canvas(buffer)
         pdf_file.setFont('droid-serif', 24)
         pdf_file.drawString(200, 800, 'Список покупок')
@@ -167,8 +170,10 @@ class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
         width = 75
         for i, item in enumerate(ingredients, 1):
             pdf_file.drawString(width, height, (
-            f'{i}. {item["ingredients__name"]} - {item["ingredient_amount"]} '
-            f'{item["ingredients__measurement_unit"]}'))
+                f'{i}. {item["ingredients__name"]} '
+                f'- {item["ingredient_amount"]} '
+                f'{item["ingredients__measurement_unit"]}')
+            )
             height -= 25
         pdf_file.showPage()
         pdf_file.save()
