@@ -251,7 +251,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return tags
 
     def add_ingredients_and_tags(self, tags, ingredients, recipe):
-        tags= self.initial_data.get('tags')
+        tags = self.initial_data.get('tags')
         recipe.tags.set(tags)
         for ingredient in ingredients:
             AmountIngredients.objects.create(
