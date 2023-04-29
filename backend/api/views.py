@@ -154,7 +154,7 @@ class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
                 'ingredients__measurement_unit'
             ).annotate(
                 ingredient_amount=Sum('amount')
-            ).order_by('ingredients__name')
+        ).order_by('ingredients__name')
 
         pdfmetrics.registerFont(
             TTFont(
