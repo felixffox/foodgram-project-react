@@ -17,6 +17,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from users.models import MyUser, Subscriptions
 
+from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CreateRecipeSerializer, IngredientSerializer,
                           ReadRecipeSerializer, ShortRecipeSerializer,
@@ -98,16 +99,15 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAdminOrReadOnly, )
     pagination_class = None
     filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
-    filterset_field = ('name', )
+    filterset_class = IngredientFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
     queryset = Recipe.objects.all()
     serializer_class = CreateRecipeSerializer
     permission_classes = (IsAuthorOrReadOnly, )
-    pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, )
-    filterset_fields = ('author', 'name', 'tags')
+    filterset_class = RecipeFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
