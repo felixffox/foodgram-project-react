@@ -75,6 +75,19 @@ class UserSubscriptionsSerializer(serializers.ModelSerializer):
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj.author).count()
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        return {
+            'email': representation['subscribe']['email'],
+            'id': representation['subscribe']['id'],
+            'username': representation['subscribe']['username'],
+            'first_name': representation['subscribe']['first_name'],
+            'last_name': representation['subscribe']['last_name'],
+            'is_subscribed': representation['subscribe']['is_subscribed'],
+            'recipes': representation['recipes'],
+            'recipes_count': representation['recipes_count'],
+        }
+
 
 class TagSerializer(serializers.ModelSerializer):
     color = Hex2NameColor()
@@ -228,9 +241,6 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('author',)
 
-    def to_representation(self, instance):
-        return ReadRecipeSerializer(instance, context=self.context).data
-
     def validate(self, data):
         ingredients = self.initial_data.get('ingredients')
         ingredient_list = []
@@ -250,24 +260,49 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
                 'Необходимо выбрать теги!')
         return tags
 
-    def add_ingredients_and_tags(self, tags, ingredients, recipe):
-        tags = self.initial_data.get('tags')
-        recipe.tags.set(tags)
-        for ingredient in ingredients:
-            AmountIngredients.objects.create(
-                recipe=recipe,
-                ingredients_id=ingredient.get('id'),
-                amount=ingredient.get('amount'),
-            )
-        return recipe
+#    def add_ingredients_and_tags(self, tags, ingredients, recipe):
+#        tags = self.initial_data.get('tags')
+#        recipe.tags.set(tags)
+#        for ingredient in ingredients:
+#            AmountIngredients.objects.create(
+#                recipe=recipe,
+#                ingredients_id=ingredient.get('id'),
+#                amount=ingredient.get('amount'),
+#            )
+#        return recipe
 
     def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
+        current_user = self.context['request'].user
         tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(**validated_data)
-        return self.add_ingredients_and_tags(
-            tags, ingredients, recipe
-        )
+        ingredients = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(**validated_data, author=current_user)
+        ingredient_counts = {}
+        for ingredient in ingredients:
+            ingredient_id = ingredient['id']
+            amount = ingredient['amount']
+            if ingredient_id in ingredient_counts:
+                ingredient_counts[ingredient_id] += amount
+            else:
+                recipe_ingredient, created = (
+                    AmountIngredients.objects.get_or_create(
+                        recipe=recipe,
+                        ingredient_id=ingredient_id,
+                        defaults={'amount': amount},
+                    )
+                )
+                if not created:
+                    recipe_ingredient.amount += amount
+                    recipe_ingredient.save()
+        recipe.tags.set(tags)
+        return recipe
+
+#    def create(self, validated_data):
+#        ingredients = validated_data.pop('ingredients')
+#        tags = validated_data.pop('tags')
+#        recipe = Recipe.objects.create(**validated_data)
+#        return self.add_ingredients_and_tags(
+#            tags, ingredients, recipe
+#        )
 
     def update(self, instance, validated_data):
         instance.ingredients.clear()
