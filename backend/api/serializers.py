@@ -65,7 +65,7 @@ class UserSubscriptionsSerializer(serializers.ModelSerializer):
     recipes = ShortRecipeSerializer(
         many=True,
         read_only=True,
-        source='author.recipe_author')
+        source='author.recipes')
     recipes_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
