@@ -225,9 +225,6 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
             id=obj.id
         ).exists()
 
-    def to_representation(self, instance):
-        return ReadRecipeSerializer(instance, context=self.context).data
-
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
