@@ -53,24 +53,31 @@ class UserSerializer(UserSerializer):
                 ).exists()
         return False
 
+class ShortRecipeSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('id', 'name', 'image', 'cooking_time')
+        model = Recipe
 
 class UserSubscriptionsSerializer(serializers.ModelSerializer):
     author = UserSerializer()
-    recipes = serializers.SerializerMethodField()
+    recipes = ShortRecipeSerializer(
+        many=True,
+        read_only=True,
+        source='author.recipe_author')
     recipes_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Subscriptions
         fields = ('author', 'recipes', 'recipes_count')
 
-    def get_recipes(self, obj):
-        request = self.context.get('request')
-        limit = request.GET.get('recipes_limit')
-        recipes = Recipe.objects.filter(author=obj.author)
-        if limit:
-            recipes = recipes[:int(limit)]
-        serializer = SubscribeRecipeSerializer(recipes, many=True)
-        return serializer.data
+    #def get_recipes(self, obj):
+    #    request = self.context.get('request')
+    #    limit = request.GET.get('recipes_limit')
+    #    recipes = Recipe.objects.filter(author=obj.author)
+    #    if limit:
+    #        recipes = recipes[:int(limit)]
+    #    serializer = SubscribeRecipeSerializer(recipes, many=True)
+    #    return serializer.data
 
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj.author).count()
@@ -215,6 +222,9 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
             in_buylist__user=user,
             id=obj.id
         ).exists()
+
+    def to_representation(self, instance):
+        return ReadRecipeSerializer(instance, context=self.context).data
 
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
