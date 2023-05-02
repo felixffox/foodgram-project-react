@@ -16,6 +16,9 @@ class Base64ImageField(serializers.ImageField):
 
         return super().to_internal_value(data)
 
+    def to_representation(self, file):
+        return '/media/' + super().to_representation(file)
+
 
 class Hex2NameColor(serializers.Field):
     def to_representation(self, value):
