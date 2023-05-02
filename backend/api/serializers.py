@@ -93,6 +93,8 @@ class UserSubscriptionsSerializer(serializers.ModelSerializer):
             'first_name': representation['author']['first_name'],
             'last_name': representation['author']['last_name'],
             'is_subscribed': representation['author']['is_subscribed'],
+            'recipes': representation['recipes'],
+            'recipes_count': representation['recipes_count'],
         }
 
 
