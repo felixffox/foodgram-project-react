@@ -78,12 +78,12 @@ class UserSubscriptionsSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         return {
-            'email': representation['subscribe']['email'],
-            'id': representation['subscribe']['id'],
-            'username': representation['subscribe']['username'],
-            'first_name': representation['subscribe']['first_name'],
-            'last_name': representation['subscribe']['last_name'],
-            'is_subscribed': representation['subscribe']['is_subscribed'],
+            'email': representation['author']['email'],
+            'id': representation['author']['id'],
+            'username': representation['author']['username'],
+            'first_name': representation['author']['first_name'],
+            'last_name': representation['author']['last_name'],
+            'is_subscribed': representation['author']['is_subscribed'],
             'recipes': representation['recipes'],
             'recipes_count': representation['recipes_count'],
         }
