@@ -20,7 +20,8 @@ from users.models import MyUser, Subscriptions
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CreateRecipeSerializer, IngredientSerializer,
-                          ReadRecipeSerializer, TagSerializer, UserSerializer,
+                          ReadRecipeSerializer, ShortRecipeSerializer,
+                          TagSerializer, UserSerializer,
                           UserSubscriptionsSerializer)
 from .services import ActionMethods
 
@@ -113,7 +114,7 @@ class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH'):
-            return CreateRecipeSerializer
+            return ShortRecipeSerializer
         return ReadRecipeSerializer
 
     @action(
