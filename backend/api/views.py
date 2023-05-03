@@ -20,8 +20,7 @@ from users.models import MyUser, Subscriptions
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CreateRecipeSerializer, IngredientSerializer,
-                          ReadRecipeSerializer, ShortRecipeSerializer,
-                          TagSerializer, UserSerializer,
+                          ReadRecipeSerializer, TagSerializer, UserSerializer,
                           UserSubscriptionsSerializer)
 from .services import ActionMethods
 
