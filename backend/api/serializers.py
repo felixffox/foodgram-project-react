@@ -190,9 +190,16 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
         read_only_fields = (
+            'id',
+            'tags',
+            'author',
             'ingredients',
-            'is_favorite',
+            'is_favorited',
             'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time'
         )
 
     def get_ingredients(self, recipe):
