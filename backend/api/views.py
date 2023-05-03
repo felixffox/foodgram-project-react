@@ -110,8 +110,8 @@ class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
 
-#    def perform_create(self, serializer):
-#        serializer.save(author=self.request.user)
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH'):
