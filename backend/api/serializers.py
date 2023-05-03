@@ -55,9 +55,11 @@ class UserSerializer(UserSerializer):
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
     class Meta:
-        fields = ('id', 'name', 'image', 'cooking_time')
         model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class UserSubscriptionsSerializer(serializers.ModelSerializer):
@@ -152,14 +154,6 @@ class SubscribeRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time',)
-
-
-class ShortRecipeSerializer(serializers.ModelSerializer):
-    image = Base64ImageField()
-
-    class Meta:
-        fields = ('id', 'name', 'image', 'cooking_time')
-        model = Recipe
 
 
 class ReadRecipeSerializer(serializers.ModelSerializer):
@@ -305,6 +299,33 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         recipe.tags.set(tags)
         return recipe
 
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        instance = super().update(instance, validated_data)
+        instance.tags.clear()
+        instance.tags.set(tags)
+        instance.ingredient.clear()
+        ingredient_counts = {}
+        for ingredient in ingredients:
+            ingredient_id = ingredient['id']
+            amount = ingredient['amount']
+            if ingredient_id in ingredient_counts:
+                ingredient_counts[ingredient_id] += amount
+            else:
+                ingredient_counts[ingredient_id] = amount
+        create_ingredients = [
+            AmountIngredients(
+                recipe=instance,
+                ingredient_id=ingredient_id,
+                amount=amount
+            )
+            for ingredient_id, amount in ingredient_counts.items()
+        ]
+        AmountIngredients.objects.bulk_create(create_ingredients)
+        instance.save()
+        return instance
+
 #    def create(self, validated_data):
 #        ingredients = validated_data.pop('ingredients')
 #        tags = validated_data.pop('tags')
@@ -313,16 +334,17 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 #            tags, ingredients, recipe
 #        )
 
-    def update(self, instance, validated_data):
-        instance.ingredients.clear()
-        instance.tags.clear()
-        ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
-        self.add_ingredients_and_tags(
-            tags, ingredients, instance
-        )
-        instance = super().update(instance, validated_data)
-        return instance
+#    def update(self, instance, validated_data):
+#        instance.ingredients.clear()
+#        instance.tags.clear()
+#        ingredients = validated_data.pop('ingredients')
+#        tags = validated_data.pop('tags')
+#        self.add_ingredients_and_tags(
+#            tags, ingredients, instance
+#        )
+#        instance = super().update(instance, validated_data)
+#        return instance
 
     def to_representation(self, instance):
         return ReadRecipeSerializer(instance, context=self.context).data
+ 
