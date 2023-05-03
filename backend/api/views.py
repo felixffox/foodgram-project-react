@@ -114,7 +114,7 @@ class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH'):
-            return ShortRecipeSerializer
+            return CreateRecipeSerializer
         return ReadRecipeSerializer
 
     @action(
