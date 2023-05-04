@@ -268,14 +268,14 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
                 'Необходимо выбрать теги!')
         return tags
 
-    def add_ingredients_and_tags(self, tags, ingredients, recipe):
-        for ingredient in ingredients:
-            AmountIngredients.objects.create(
-                recipe=recipe,
-                ingredients_id=ingredient.get('id'),
-                amount=ingredient.get('amount'),
-            )
-        return recipe
+#    def add_ingredients_and_tags(self, tags, ingredients, recipe):
+#        for ingredient in ingredients:
+#            AmountIngredients.objects.create(
+#                recipe=recipe,
+#                ingredients_id=ingredient.get('id'),
+#                amount=ingredient.get('amount'),
+#            )
+#        return recipe
 
 #    def create(self, validated_data):
 #        current_user = self.context['request'].user
