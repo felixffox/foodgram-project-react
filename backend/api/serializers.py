@@ -252,18 +252,16 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('author',)
 
-    def validate(self, data):
-        ingredients = self.initial_data.get('ingredients')
+    def validate_ingredients(self, ingredients):
         ingredient_list = []
         for ingredient in ingredients:
 
-            if ingredient in ingredient_list:
+            if ingredient['id'] in ingredient_list:
                 raise serializers.ValidationError(
                     'Ингредиенты должны быть уникальными')
-            ingredient_list.append(ingredient)
+            ingredient_list.append(ingredient['id'])
 
-        data['ingredients'] = ingredients
-        return data
+        return ingredients
 
     def validate_tags(self, tags):
         if not tags:
@@ -272,8 +270,6 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return tags
 
     def add_ingredients_and_tags(self, tags, ingredients, recipe):
-        tags = self.initial_data.get('tags')
-        recipe.tags.set(tags)
         for ingredient in ingredients:
             AmountIngredients.objects.create(
                 recipe=recipe,
@@ -338,18 +334,30 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
-        return self.add_ingredients_and_tags(
-            tags, ingredients, recipe
-        )
+        recipe.tags.set(tags)
+        for ingredient in ingredients:
+            ingredient = Ingredient.objects.get(id=ingredient['id'])
+            AmountIngredients.objects.create(
+                recipe=recipe,
+                ingredient=ingredient,
+                amount=ingredient['amount'],
+            )
+        return recipe
 
     def update(self, instance, validated_data):
         instance.ingredients.clear()
         instance.tags.clear()
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        self.add_ingredients_and_tags(
-            tags, ingredients, instance
-        )
+        instance.tags.set(tags)
+        for ingredient in ingredients:
+            ingredient = Ingredient.objects.get(id=ingredient['id'])
+            AmountIngredients.objects.create(
+                recipe=instance,
+                ingredient=ingredient,
+                amount=ingredient['amount'],
+            )
+        
         instance = super().update(instance, validated_data)
         return instance
 
