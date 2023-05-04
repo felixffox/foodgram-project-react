@@ -13,12 +13,13 @@ from reportlab.pdfgen import canvas
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from users.models import MyUser, Subscriptions
 
 from .filters import IngredientFilter, RecipeFilter
-from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
+from .permissions import IsAuthorOrReadOnly
 from .serializers import (CreateRecipeSerializer, IngredientSerializer,
                           ReadRecipeSerializer, ShortRecipeSerializer,
                           TagSerializer, UserSerializer,
@@ -89,14 +90,12 @@ class MyUserViewSet(UserViewSet):
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (IsAdminOrReadOnly, )
     pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (IsAdminOrReadOnly, )
     pagination_class = None
     filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
     filterset_class = IngredientFilter
@@ -105,7 +104,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet, ActionMethods):
     queryset = Recipe.objects.all()
     serializer_class = CreateRecipeSerializer
-    permission_classes = (IsAuthorOrReadOnly, )
+    permission_classes = (IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly)
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
