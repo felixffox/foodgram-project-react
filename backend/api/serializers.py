@@ -271,7 +271,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             AmountIngredients.objects.create(
                 recipe=recipe,
                 ingredient=ingredient,
-                amount=ingredient['amount'],
+                amount=ingredient.get('amount'),
             )
         return recipe
 
@@ -286,7 +286,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             AmountIngredients.objects.create(
                 recipe=instance,
                 ingredient=ingredient,
-                amount=ingredient['amount'],
+                amount=ingredient.get('amount'),
             )
 
         instance = super().update(instance, validated_data)
