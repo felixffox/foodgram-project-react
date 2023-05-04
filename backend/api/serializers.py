@@ -130,7 +130,7 @@ class IngredientRecipeReadSerializer(serializers.ModelSerializer):
 
 class IngredientRecipeCreateSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
-        queryset=AmountIngredients.objects.all()
+        queryset=Ingredient.objects.all()
     )
 
     class Meta:
