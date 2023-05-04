@@ -202,12 +202,6 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
 
-    def get_ingredients(self, recipe):
-        ingredients = recipe.ingredients.values(
-            'id', 'name', 'measurement_unit', amount=F('recipe__amount')
-        )
-        return ingredients
-
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
@@ -251,6 +245,12 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
         read_only_fields = ('author',)
+
+    def get_ingredients(self, recipe):
+        ingredients = recipe.ingredients.values(
+            'id', 'name', 'measurement_unit', amount=F('recipe__amount')
+        )
+        return ingredients
 
     def validate_ingredients(self, ingredients):
         ingredient_list = []
