@@ -245,12 +245,6 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('author',)
 
-    def get_ingredients(self, recipe):
-        ingredients = recipe.ingredients.values(
-            'id', 'name', 'measurement_unit', amount=F('recipe__amount')
-        )
-        return ingredients
-
     def validate_ingredients(self, ingredients):
         ingredient_list = []
         for ingredient in ingredients:
@@ -267,67 +261,6 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Необходимо выбрать теги!')
         return tags
-
-#    def add_ingredients_and_tags(self, tags, ingredients, recipe):
-#        for ingredient in ingredients:
-#            AmountIngredients.objects.create(
-#                recipe=recipe,
-#                ingredients_id=ingredient.get('id'),
-#                amount=ingredient.get('amount'),
-#            )
-#        return recipe
-
-#    def create(self, validated_data):
-#        current_user = self.context['request'].user
-#        tags = validated_data.pop('tags')
-#        ingredients = validated_data.pop('ingredients')
-#        recipe = Recipe.objects.create(**validated_data, author=current_user)
-#        ingredient_counts = {}
-#        for ingredient in ingredients:
-#            ingredient_id = ingredient['id']
-#            amount = ingredient['amount']
-#            if ingredient_id in ingredient_counts:
-#                ingredient_counts[ingredient_id] += amount
-#            else:
-#                recipe_ingredient, created = (
-#                    AmountIngredients.objects.get_or_create(
-#                        recipe=recipe,
-#                        ingredient_id=ingredient_id,
-#                        defaults={'amount': amount},
-#                    )
-#                )
-#                if not created:
-#                    recipe_ingredient.amount += amount
-#                    recipe_ingredient.save()
-#        recipe.tags.set(tags)
-#        return recipe
-
-#    def update(self, instance, validated_data):
-#        tags = validated_data.pop('tags')
-#        ingredients = validated_data.pop('ingredients')
-#        instance = super().update(instance, validated_data)
-#        instance.tags.clear()
-#        instance.tags.set(tags)
-#        instance.ingredient.clear()
-#        ingredient_counts = {}
-#        for ingredient in ingredients:
-#            ingredient_id = ingredient['id']
-#            amount = ingredient['amount']
-#            if ingredient_id in ingredient_counts:
-#                ingredient_counts[ingredient_id] += amount
-#            else:
-#                ingredient_counts[ingredient_id] = amount
-#        create_ingredients = [
-#            AmountIngredients(
-#                recipe=instance,
-#                ingredient_id=ingredient_id,
-#                amount=amount
-#            )
-#            for ingredient_id, amount in ingredient_counts.items()
-#        ]
-#        AmountIngredients.objects.bulk_create(create_ingredients)
-#        instance.save()
-#        return instance
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
