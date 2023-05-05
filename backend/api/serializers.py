@@ -128,7 +128,8 @@ class IngredientRecipeReadSerializer(serializers.ModelSerializer):
 
 
 class IngredientRecipeCreateSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(write_only=True)
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),)
     amount = serializers.IntegerField()
 
     class Meta:
@@ -261,36 +262,80 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
                 'Необходимо выбрать теги!')
         return tags
 
+    def create_ingredients(self, ingredients, recipe, menu_list):
+        """Создаёт ингридиент."""
+        for ingredient in ingredients:
+            recipe_list = AmountIngredients(
+                recipe=recipe,
+                ingredients=ingredient['id'],
+                amount=ingredient['amount']
+            )
+            menu_list.append(recipe_list)
+
     def create(self, validated_data):
+        """Создаёт рецепт."""
+        menu_list = []
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(**validated_data)
+        recipe = Recipe.objects.create(
+            author=self.context.get('request').user, **validated_data)
         recipe.tags.set(tags)
-        for ingredient in ingredients:
-            ingredient = Ingredient.objects.get(id=ingredient['id'])
-            AmountIngredients.objects.create(
-                recipe=recipe,
-                ingredient=ingredient,
-                amount=ingredient.get('amount'),
-            )
+        self.create_ingredients(
+            ingredients,
+            recipe,
+            menu_list
+        )
+        AmountIngredients.objects.bulk_create(menu_list)
+
         return recipe
 
     def update(self, instance, validated_data):
-        instance.ingredients.clear()
+        """Обновляет рецепт."""
+        menu_list = []
         instance.tags.clear()
-        ingredients = validated_data.pop('ingredients')
+        AmountIngredients.objects.filter(recipe=instance).all().delete()
         tags = validated_data.pop('tags')
-        instance.tags.set(tags)
-        for ingredient, amount in ingredients:
-            ingredient = Ingredient.objects.get(id=ingredient['id'])
-            AmountIngredients.objects.create(
-                recipe=instance,
-                ingredient=ingredient,
-                amount=amount,
-            )
+        for tag in tags:
+            instance.tags.add(tag)
+        self.create_ingredients(
+            validated_data.pop('ingredients'),
+            instance,
+            menu_list
+        )
+        AmountIngredients.objects.bulk_create(menu_list)
 
-        instance = super().update(instance, validated_data)
-        return instance
+        return super().update(instance, validated_data)
+
+#    def create(self, validated_data):
+#        ingredients = validated_data.pop('ingredients')
+#        tags = validated_data.pop('tags')
+#        recipe = Recipe.objects.create(**validated_data)
+#        recipe.tags.set(tags)
+#        for ingredient in ingredients:
+#            ingredient = Ingredient.objects.get(id=ingredient['id'])
+#            AmountIngredients.objects.create(
+#                recipe=recipe,
+#                ingredient=ingredient,
+#                amount=ingredient.get('amount'),
+#            )
+#        return recipe
+#
+#    def update(self, instance, validated_data):
+#        instance.ingredients.clear()
+#        instance.tags.clear()
+#        ingredients = validated_data.pop('ingredients')
+#        tags = validated_data.pop('tags')
+#        instance.tags.set(tags)
+#        for ingredient, amount in ingredients:
+#            ingredient = Ingredient.objects.get(id=ingredient['id'])
+#            AmountIngredients.objects.create(
+#                recipe=instance,
+#                ingredient=ingredient,
+#                amount=amount,
+#            )
+#
+#        instance = super().update(instance, validated_data)
+#        return instance
 
     def to_representation(self, instance):
         return ReadRecipeSerializer(instance, context=self.context).data
