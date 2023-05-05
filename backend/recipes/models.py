@@ -135,7 +135,7 @@ class AmountIngredients(models.Model):
                 message='Нужен хотя бы один ингредиент!'
             ),
             MaxValueValidator(
-                50,
+                10000,
                 message='Слишком много!'
             )
         )
