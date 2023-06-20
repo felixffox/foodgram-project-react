@@ -26,8 +26,6 @@ from .serializers import (CreateRecipeSerializer, IngredientSerializer,
 from .services import ActionMethods
 
 
-# Это тестовый коммент для проверки работы гит команд из новой IDE
-
 class MyUserViewSet(UserViewSet):
     queryset = MyUser.objects.all()
     serializer_class = UserSerializer
